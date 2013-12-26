@@ -143,6 +143,10 @@ msgstr "Live-Signal anhalten"
 msgid "Settings for menu \"%s\""
 msgstr "Einstellungen für das Menü \"%s\""
 
+#, c-format
+msgid "Settings for epgsearch \"%s\""
+msgstr "Einstellungen für epgsearch Menü \"%s\""
+
 msgid "Replace mainmenu"
 msgstr "Hauptmenü ersetzen"
 
@@ -158,6 +162,52 @@ msgstr "Funktion der Tasten %s/%s"
 
 msgid "User ID filter"
 msgstr "Benutzer-Filter"
+
+
+
+msgid "Start menu"
+msgstr "Starte mit"
+
+msgid "Ok key"
+msgstr "Taste Ok"
+
+msgid "Red key"
+msgstr "Taste Rot"
+
+msgid "Blue key"
+msgstr "Taste Blau"
+
+msgid "Show progress in 'Now'"
+msgstr "Zeige Fortschritt in 'Jetzt'"
+
+msgid "Show channel numbers"
+msgstr "Zeige Kanalnummern"
+
+msgid "Show channel separators"
+msgstr "Zeige Kanal-Separatoren"
+
+msgid "Show day separators"
+msgstr "Zeige Tages-Separatoren"
+
+msgid "Show radio channels"
+msgstr "Zeige Radiokanäle"
+
+msgid "Limit channels from 1 to"
+msgstr "Kanäle begrenzen von 1 bis"
+
+msgid "'One press' timer creation"
+msgstr "Timer mit 'Aufnehmen' sofort anlegen"
+
+msgid "Show channels without EPG"
+msgstr "Zeige Kanäle ohne EPG"
+
+msgid "Time interval for FRew/FFwd [min]"
+msgstr "Zeitintervall für FRew/FFwd [min]"
+
+msgid "Toggle Green/Yellow"
+msgstr "Grün/Gelb umschalten"
+
+
 
 msgid "Move recording bandwidth limit (Mbit/s)"
 msgstr "Max. Bandbreite beim Verschieben (Mbit/s)"
