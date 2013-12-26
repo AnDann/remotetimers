@@ -28,9 +28,39 @@
 #define MAX_IP_LENGTH 16
 #define EPGTIME_LENGTH 4
 
+typedef enum
+{
+    showNow=0,
+    showNext,
+    showUserMode1,
+    showUserMode2,
+    showUserMode3,
+    showUserMode4,
+    showFavorites,
+    showModeMax
+} showMode;
+
 struct cRemoteTimersSetup {
 	int hideMainMenuEntry;
 	int replaceSchedule;
+	// from epgsearch
+        int ReplaceOrgSchedule;
+        int redkeymode;
+        int bluekeymode;
+        int showProgress;
+        int showChannelNr;
+        int timeShiftValue;
+        int toggleGreenYellow;
+        int StartMenu;
+        int showChannelGroups;
+        int showDaySeparators;
+        int showEmptyChannels;
+        int showRadioChannels;
+        int onePressTimerCreation;
+        int maxChannelMenuNow;
+        int useOkForSwitch;
+
+	//
 	int replaceTimers;
 	int replaceRecordings;
 	char serverIp[MAX_IP_LENGTH];

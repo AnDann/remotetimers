@@ -27,6 +27,11 @@
 
 cRemoteTimersSetup RemoteTimersSetup;
 
+const char *OkKeyMode[2];
+const char *RedKeyMode[2];
+const char *BlueKeyMode[2];
+const char *StartMenuMode[2];
+
 char* copyFilename(char *dest, const char *src, size_t n) {
 	while (*src == FOLDERDELIMCHAR)
 		src++;
@@ -44,14 +49,42 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	serverIp[0] = 0;
 	serverPort = 0;
 	useChannelId = 1;
-	swapOkBlue = 0;
+        swapOkBlue = 0;
 	showProgressBar = 0;
+
+// Implat from epgsearch
+        ReplaseOrgSchedule = 0;
+        redkeymode	    = 0;
+        bluekeymode       = 1;
+        showProgress      = 1;
+        showChannelNr     = 0;
+        timeShiftValue    = 30;
+        toggleGreenYellow = 1;
+        StartMenu         = 0;
+        showChannelGroups = 0;
+        showDaySeparators = 0;
+        showEmptyChannels = 0;
+        useOkForSwitch = 0;
+        maxChannelMenuNow = 0;
+        showRadioChannels = 1;
+        onePressTimerCreation = 1;
+        OkKeyMode[0] = trVDR("Button$Info");
+        OkKeyMode[1] = trVDR("Button$Switch");
+
+        RedKeyMode[0] = tr("Standard");
+        RedKeyMode[1] = tr("Button$Commands");
+
+        BlueKeyMode[0] = tr("Standard");
+        BlueKeyMode[1] = tr("Button$Search");
+
+        StartMenuMode[0] = trVDR("Button$Schedule");
+        StartMenuMode[1] = trVDR("Button$Now");
+//
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		epgTime[i] = 0;
 	userFilterSchedule = 0;
 	userFilterTimers = 0;
 	userFilterRecordings = 0;
-	skinSchedule = 0;
 	skinTimers = 0;
 	skinRecordings = 0;
 	defaultUser = 0;
@@ -71,14 +104,11 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	strn0cpy(serverIp, Setup.serverIp, sizeof(serverIp));
 	serverPort = Setup.serverPort;
 	useChannelId = Setup.useChannelId;
-	swapOkBlue = Setup.swapOkBlue;
-	showProgressBar = Setup.showProgressBar;
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		epgTime[i] = Setup.epgTime[i];
 	userFilterSchedule = Setup.userFilterSchedule;
 	userFilterTimers = Setup.userFilterTimers;
 	userFilterRecordings = Setup.userFilterRecordings;
-	skinSchedule = Setup.skinSchedule;
 	skinTimers = Setup.skinTimers;
 	skinRecordings = Setup.skinRecordings;
 	defaultUser = Setup.defaultUser;
@@ -88,6 +118,23 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	moveBandwidth = Setup.moveBandwidth;
 	copyFilename(serverDir, Setup.serverDir, sizeof(serverDir));
 	watchUpdate = Setup.watchUpdate;
+	// epgsearch implant
+        ReplaseOrgSchedule = Setup.ReplaseOrgSchedule;
+	redkeymode = Setup.redkeymode;
+        bluekeymode = Setup.bluekeymode;
+        showProgress = Setup.showProgress;
+        showChannelNr = Setup.showChannelNr;
+        timeShiftValue = Setup.timeShiftValue;
+        toggleGreenYellow = Setup.toggleGreenYellow;
+        StartMenu = Setup.StartMenu;
+        showChannelGroups = Setup.showChannelGroups;
+        showDaySeparators = Setup.showDaySeparators;
+        showEmptyChannels = Setup.showEmptyChannels;
+        showRadioChannels = Setup.showRadioChannels;
+        onePressTimerCreation = Setup.onePressTimerCreation;
+        maxChannelMenuNow = Setup.maxChannelMenuNow;
+        useOkForSwitch = Setup.useOkForSwitch;
+	//
 	return *this;
 }
 
@@ -96,6 +143,22 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		hideMainMenuEntry = atoi(Value);
 	else if (!strcasecmp(Name, "ReplaceSchedule"))
 		replaceSchedule = atoi(Value);
+// Implant from epgsearch
+	else if (!strcasecmp(Name, "ReplaseOrgSchedule")) ReplaseOrgSchedule = atoi(Value);
+        else if (!strcasecmp(Name, "StartMenu")) StartMenu = atoi(Value);
+        else if (!strcasecmp(Name, "RedKeyMode")) redkeymode = atoi(Value);
+        else if (!strcasecmp(Name, "BlueKeyMode")) bluekeymode = atoi(Value);
+        else if (!strcasecmp(Name, "ShowProgress")) showProgress = atoi(Value);
+        else if (!strcasecmp(Name, "ShowChannelNr")) showChannelNr = atoi(Value);
+        else if (!strcasecmp(Name, "UseOkForSwitch")) useOkForSwitch = atoi(Value);
+        else if (!strcasecmp(Name, "MaxChannelMenuNow")) maxChannelMenuNow = atoi(Value);
+        else if (!strcasecmp(Name, "ShowRadioChannels")) showRadioChannels = atoi(Value);
+        else if (!strcasecmp(Name, "OnePressTimerCreation")) onePressTimerCreation = atoi(Value);
+        else if (!strcasecmp(Name, "ToggleGreenYellow")) toggleGreenYellow = atoi(Value);
+        else if (!strcasecmp(Name, "ShowChannelGroups")) showChannelGroups = atoi(Value);
+        else if (!strcasecmp(Name, "ShowDaySeparators")) showDaySeparators = atoi(Value);
+        else if (!strcasecmp(Name, "ShowEmptyChannels")) showEmptyChannels = atoi(Value);
+//
 	else if (!strcasecmp(Name, "ReplaceTimers"))
 		replaceTimers = atoi(Value);
 	else if (!strcasecmp(Name, "ReplaceRecordings"))
@@ -154,8 +217,26 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("ServerIp", setupTmp.serverIp);
 	SetupStore("ServerPort", setupTmp.serverPort);
 	SetupStore("UseChannelId", setupTmp.useChannelId);
-	SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
+        SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
 	SetupStore("ShowProgressBar", setupTmp.showProgressBar);
+
+
+	//	epgsearch    
+        SetupStore("ReplaceOrgSchedule",  setupTmp.ReplaceOrgSchedule);
+	SetupStore("StartMenu",  setupTmp.StartMenu);
+        SetupStore("RedKeyMode",  setupTmp.redkeymode);
+        SetupStore("BlueKeyMode",  setupTmp.bluekeymode);
+        SetupStore("ShowProgress",  setupTmp.showProgress);
+        SetupStore("ShowChannelNr",  setupTmp.showChannelNr);
+        SetupStore("OnePressTimerCreation",  setupTmp.onePressTimerCreation);
+        SetupStore("UseOkForSwitch",  setupTmp.useOkForSwitch);
+        SetupStore("MaxChannelMenuNow",  setupTmp.maxChannelMenuNow);
+	SetupStore("ToggleGreenYellow",  setupTmp.toggleGreenYellow);
+	SetupStore("ShowRadioChannels", setupTmp.showRadioChannels);
+	SetupStore("ShowChannelGroups",  setupTmp.showChannelGroups);
+        SetupStore("ShowDaySeparators",  setupTmp.showDaySeparators);
+        SetupStore("ShowEmptyChannels",  setupTmp.showEmptyChannels);
+	//
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		SetupStore(cString::sprintf("EpgTime%d", i), setupTmp.epgTime[i]);
 	SetupStore("UserFilterSchedule", setupTmp.userFilterSchedule);
@@ -196,6 +277,7 @@ cRemoteTimersMenuSetup::~cRemoteTimersMenuSetup() {
 void cRemoteTimersMenuSetup::Set() {
 	int current = Current();
 	Clear();
+
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Server IP"), setupTmp.serverIp, sizeof(setupTmp.serverIp), ".1234567890"));
 	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535, trREMOTETIMERS("from svdrpservice")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Map channels using"), &setupTmp.useChannelId, trREMOTETIMERS("channel number"), trREMOTETIMERS("channel ID")));
@@ -218,8 +300,27 @@ void cRemoteTimersMenuSetup::Set() {
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		Add(new cMenuEditTimeItem(cString::sprintf("%s %d", *cString::sprintf(trREMOTETIMERS("What's on at %s?"), "..."), i + 1), &setupTmp.epgTime[i]));
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Key binding of %s/%s"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
-	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+        Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 
+ //	Start IMPLANT from epgsearch
+ 	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for epgsearch \"%s\""), tr("Schedule")), osUnknown, false));
+        Add(new cMenuEditBoolItem(tr("Replace original schedule"),    &setupTmp.ReplaceOrgSchedule, trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditStraItem(tr("Ok key"), &setupTmp.useOkForSwitch, 2, OkKeyMode));
+        Add(new cMenuEditStraItem(tr("Red key"), &setupTmp.redkeymode, 2, RedKeyMode));
+        Add(new cMenuEditStraItem(tr("Blue key"), &setupTmp.bluekeymode, 2, BlueKeyMode));
+        Add(new cMenuEditBoolItem(tr("Show progress in 'Now'"), &setupTmp.showProgress, trVDR("no"), trVDR("yes")));
+        Add(new cMenuEditBoolItem(tr("Show channel numbers"), &setupTmp.showChannelNr,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(tr("Show channel separators"), &setupTmp.showChannelGroups,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(tr("Show day separators"), &setupTmp.showDaySeparators,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(tr("Show radio channels"), &setupTmp.showRadioChannels,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditIntItem(tr("Limit channels from 1 to"), &setupTmp.maxChannelMenuNow, 0, 9999));
+        Add(new cMenuEditBoolItem(tr("'One press' timer creation"), &setupTmp.onePressTimerCreation,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(tr("Show channels without EPG"), &setupTmp.showEmptyChannels,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditIntItem(tr("Time interval for FRew/FFwd [min]"), &setupTmp.timeShiftValue, 1, 9999));
+        Add(new cMenuEditBoolItem(tr("Toggle Green/Yellow"), &setupTmp.toggleGreenYellow,       trVDR("no"),      trVDR("yes")));
+//	IMPLANT from epgsearch
+
+        
 	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Timers")), osUnknown, false));
 #ifdef MAINMENUHOOKSVERSNUM
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceTimers));
