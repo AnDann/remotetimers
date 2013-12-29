@@ -44,22 +44,8 @@ struct cRemoteTimersSetup {
 	int hideMainMenuEntry;
 	int replaceSchedule;
 	// from epgsearch
-        int ReplaceOrgSchedule;
-        int redkeymode;
-        int bluekeymode;
-        int showProgress;
-        int showChannelNr;
-        int timeShiftValue;
-        int toggleGreenYellow;
-        int StartMenu;
         int showChannelGroups;
-        int showDaySeparators;
         int showEmptyChannels;
-        int showRadioChannels;
-        int onePressTimerCreation;
-        int maxChannelMenuNow;
-        int useOkForSwitch;
-
 	//
 	int replaceTimers;
 	int replaceRecordings;
