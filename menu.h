@@ -22,6 +22,10 @@
 #ifndef _REMOTETIMERS_MENU__H
 #define _REMOTETIMERS_MENU__H
 
+#ifndef MENU_SEPARATOR_ITEMS
+  #define MENU_SEPARATOR_ITEMS "----------------------------------------"
+#endif
+
 #include "svdrp.h"
 //#include "ci.h"
 //#include "device.h"
