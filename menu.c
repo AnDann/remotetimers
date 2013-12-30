@@ -1004,9 +1004,9 @@ bool cMenuScheduleItem::Update(bool Force) {
         if (channel)
         {
             if (withBar && RemoteTimersSetup.showProgressBar)
-                buffer = cString::sprintf("%d\t%.*s\t%s\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, tr("--:--"), trREMOTETIMERS(">>> no info! <<<"));
+                buffer = cString::sprintf("%d\t%.*s\t\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, trREMOTETIMERS(">>> no info! <<<"));
             else
-                buffer = cString::sprintf("%d\t%.*s\t%s\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, tr("--:--"), trREMOTETIMERS(">>> no info! <<<"));
+                buffer = cString::sprintf("%d\t%.*s\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, trREMOTETIMERS(">>> no info! <<<"));
             SetText(buffer);
         }
         result = true;
