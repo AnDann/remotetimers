@@ -1003,7 +1003,10 @@ bool cMenuScheduleItem::Update(bool Force) {
         const char *csn = channel ? channel->ShortName(true) : NULL;
         if (channel)
         {
-            buffer = cString::sprintf("%d\t%.*s\t%s\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, tr("--:--"), tr(">>> no info! <<<"));
+            if (withBar && RemoteTimersSetup.showProgressBar)
+                buffer = cString::sprintf("%d\t%.*s\t%s\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, tr("--:--"), trREMOTETIMERS(">>> no info! <<<"));
+            else
+                buffer = cString::sprintf("%d\t%.*s\t%s\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, tr("--:--"), trREMOTETIMERS(">>> no info! <<<"));
             SetText(buffer);
         }
         result = true;

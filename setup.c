@@ -244,8 +244,8 @@ void cRemoteTimersMenuSetup::Set() {
         Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 
  //	Start IMPLANT from epgsearch
-        Add(new cMenuEditBoolItem(tr("Show group separators"), &setupTmp.showChannelGroups,       trVDR("no"),      trVDR("yes")));
-        Add(new cMenuEditBoolItem(tr("Show channels without EPG"), &setupTmp.showEmptyChannels,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(trREMOTETIMERS("Show group separators"), &setupTmp.showChannelGroups,       trVDR("no"),      trVDR("yes")));
+        Add(new cMenuEditBoolItem(trREMOTETIMERS("Show channels without EPG"), &setupTmp.showEmptyChannels,       trVDR("no"),      trVDR("yes")));
 //	IMPLANT from epgsearch
         
 	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Timers")), osUnknown, false));
