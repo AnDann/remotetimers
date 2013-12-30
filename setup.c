@@ -92,6 +92,8 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	remotePause = Setup.remotePause;
 	remoteInstant = Setup.remoteInstant;
 	moveBandwidth = Setup.moveBandwidth;
+        swapOkBlue = Setup.swapOkBlue;
+	showProgressBar = Setup.showProgressBar;
 	copyFilename(serverDir, Setup.serverDir, sizeof(serverDir));
 	watchUpdate = Setup.watchUpdate;
 	// epgsearch implant

@@ -924,7 +924,7 @@ public:
 /*
   virtual int Compare(const cListObject &ListObject) const;
 */
-  bool Update(bool Force = false);
+  virtual bool Update(bool Force = false);
   virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
   };
 
@@ -1018,7 +1018,7 @@ void cMenuScheduleItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bo
 }
 
 // --- cMenuMyScheduleSepItem ------------------------------------------------------
-class cMenuMyScheduleSepItem : public cOsdItem  {
+class cMenuMyScheduleSepItem : public cMenuScheduleItem  {
   const cChannel *channel;
 public:
   cMenuMyScheduleSepItem(cChannel *Channel = NULL);
@@ -1026,7 +1026,7 @@ public:
   virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
 };
 
-cMenuMyScheduleSepItem::cMenuMyScheduleSepItem(cChannel *Channel) {
+cMenuMyScheduleSepItem::cMenuMyScheduleSepItem(cChannel *Channel) : cMenuScheduleItem::cMenuScheduleItem(NULL,Channel,false,false) {
    channel = Channel;
    SetSelectable(false);
    Update(true);
@@ -1194,10 +1194,9 @@ eOSState cMenuWhatsOn::Record(void)
         cTimer *timer = NULL;
         cTimer *t = NULL;
         if (item->event) {
-            *t = GetBestMatch(item->event, 0, &tm, NULL, &isRemote);
+            t = GetBestMatch(item->event, 0, &tm, NULL, &isRemote);
             timer = new cTimer(item->event);
-        } else
-        {
+        } else {
             cChannel *channel = Channels.GetByNumber(item->channel->Number());
             timer = new cTimer(false, false, channel);
         }
