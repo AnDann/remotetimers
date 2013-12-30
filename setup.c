@@ -55,6 +55,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 // Implat from epgsearch
         showChannelGroups = 0;
         showEmptyChannels = 0;
+        startWithNow = 0;
 //
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		epgTime[i] = 0;
@@ -99,6 +100,7 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	// epgsearch implant
         showChannelGroups = Setup.showChannelGroups;
         showEmptyChannels = Setup.showEmptyChannels;
+        startWithNow = Setup.startWithNow;
 	//
 	return *this;
 }
@@ -111,6 +113,7 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 // Implant from epgsearch
         else if (!strcasecmp(Name, "ShowChannelGroups")) showChannelGroups = atoi(Value);
         else if (!strcasecmp(Name, "ShowEmptyChannels")) showEmptyChannels = atoi(Value);
+        else if (!strcasecmp(Name, "startWithNow")) startWithNow = atoi(Value);
 //
 	else if (!strcasecmp(Name, "ReplaceTimers"))
 		replaceTimers = atoi(Value);
@@ -177,6 +180,7 @@ void cRemoteTimersMenuSetup::Store() {
 	//	epgsearch    
 	SetupStore("ShowChannelGroups",  setupTmp.showChannelGroups);
         SetupStore("ShowEmptyChannels",  setupTmp.showEmptyChannels);
+        SetupStore("startWithNow",  setupTmp.startWithNow);        
 	//
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		SetupStore(cString::sprintf("EpgTime%d", i), setupTmp.epgTime[i]);
@@ -236,6 +240,7 @@ void cRemoteTimersMenuSetup::Set() {
 #ifdef MAINMENUHOOKSVERSNUM
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceSchedule));
 #endif
+        Add(new cMenuEditBoolItem(trREMOTETIMERS("Start with 'NOW'"), &setupTmp.startWithNow,       trVDR("no"),      trVDR("yes")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinSchedule, tr("Plugin"), tr("Setup.OSD$Skin")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Show progress bar"), &setupTmp.showProgressBar));
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
@@ -246,7 +251,7 @@ void cRemoteTimersMenuSetup::Set() {
  //	Start IMPLANT from epgsearch
         Add(new cMenuEditBoolItem(trREMOTETIMERS("Show group separators"), &setupTmp.showChannelGroups,       trVDR("no"),      trVDR("yes")));
         Add(new cMenuEditBoolItem(trREMOTETIMERS("Show channels without EPG"), &setupTmp.showEmptyChannels,       trVDR("no"),      trVDR("yes")));
-//	IMPLANT from epgsearch
+ //	IMPLANT from epgsearch
         
 	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Timers")), osUnknown, false));
 #ifdef MAINMENUHOOKSVERSNUM

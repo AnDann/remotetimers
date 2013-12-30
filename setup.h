@@ -46,6 +46,7 @@ struct cRemoteTimersSetup {
 	// from epgsearch
         int showChannelGroups;
         int showEmptyChannels;
+        int startWithNow;
 	//
 	int replaceTimers;
 	int replaceRecordings;

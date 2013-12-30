@@ -1353,6 +1353,11 @@ cMenuSchedule::cMenuSchedule(const char* ServerIp, unsigned short ServerPort)
      schedules = cSchedules::Schedules(schedulesLock);
      PrepareScheduleAllThis(NULL, channel);
      SetHelpKeys();
+    if (RemoteTimersSetup.startWithNow) {
+        int ChannelNr = channel->Number();
+        whatsOnId = EPGTIME_LENGTH; // now
+        AddSubMenu(new cMenuWhatsOn(schedules, whatsOnId, ChannelNr));
+    }
   }
 }
 

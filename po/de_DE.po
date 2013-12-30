@@ -168,6 +168,8 @@ msgstr "Funktion der Tasten %s/%s"
 msgid "User ID filter"
 msgstr "Benutzer-Filter"
 
+msgid "Start with 'NOW'"
+msgstr "Starte mit 'Jetzt'"
 
 msgid "Show group separators"
 msgstr "Zeige Kanal-Separatoren"
