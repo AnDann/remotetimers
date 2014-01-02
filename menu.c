@@ -1091,11 +1091,11 @@ cMenuWhatsOn::cMenuWhatsOn(const cSchedules *Schedules, int WhatsOnId, int Curre
         for (cChannel *Channel = Channels.First(); Channel; Channel = Channels.Next(Channel)) {
             if (!Channel->GroupSep()) {
                 const cSchedule *Schedule = Schedules->GetSchedule(Channel);
-                if (Schedule) {
-                    const cEvent *Event = NOW ? Schedule->GetPresentEvent() : NEXT ? Schedule->GetFollowingEvent() : Schedule->GetEventAround(GetTime(EPGTIMESEC));
-                    if (Event || RemoteTimersSetup.showEmptyChannels)
-                        Add(new cMenuScheduleItem(Event, Channel, false, NOW), Channel->Number() == CurrentChannelNr);
-                }
+                const cEvent *Event = NULL;
+                if (Schedule)
+                    Event = NOW ? Schedule->GetPresentEvent() : NEXT ? Schedule->GetFollowingEvent() : Schedule->GetEventAround(GetTime(EPGTIMESEC));
+                if (Event || RemoteTimersSetup.showEmptyChannels)
+                    Add(new cMenuScheduleItem(Event, Channel, false, NOW), Channel->Number() == CurrentChannelNr);
             } else {
                 if (RemoteTimersSetup.showChannelGroups && strlen(Channel->Name()))
                     Add(new cMenuMyScheduleSepItem(Channel));
