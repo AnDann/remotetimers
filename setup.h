@@ -28,18 +28,6 @@
 #define MAX_IP_LENGTH 16
 #define EPGTIME_LENGTH 4
 
-typedef enum
-{
-    showNow=0,
-    showNext,
-    showUserMode1,
-    showUserMode2,
-    showUserMode3,
-    showUserMode4,
-    showFavorites,
-    showModeMax
-} showMode;
-
 struct cRemoteTimersSetup {
 	int hideMainMenuEntry;
 	int replaceSchedule;
