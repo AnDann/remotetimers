@@ -972,43 +972,67 @@ static const char *TimerMatchChars = trREMOTETIMERS(" tTpP");
 
 bool cMenuScheduleItem::Update(bool Force) {
     bool result = false;
-    cString buffer;
-#define CSN_SYMBOLS 999
-    if (event) {
-        eTimerMatch oldTimerMatch = timerMatch;
-        //Timers.GetMatch(event, &timerMatch);
-        int oldTimerType = timerType;
+    eTimerMatch oldTimerMatch = timerMatch;
+    int oldTimerType = timerType;
+    if (event)
         GetBestMatch(event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &timerMatch, &timerType, NULL);
-        if (Force || timerMatch != oldTimerMatch || timerType != oldTimerType) {
-            char t = TimerMatchChars[timerMatch + 2 * timerType];
-            char v = event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
-            char r = event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
-            const char *csn = channel ? channel->ShortName(true) : NULL;
-            cString eds = event->GetDateString();
-            if (channel && withDate)
-                buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
-            else if (channel) {
-                if (withBar && RemoteTimersSetup.showProgressBar) {
-                    int progress = (time(NULL) - event->StartTime()) * MAXPROGRESS / event->Duration();
-                    progress = progress < 0 ? 0 : progress >= MAXPROGRESS ? MAXPROGRESS - 1 : progress;
-                    buffer = cString::sprintf("%d\t%.*s\t%s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, *event->GetTimeString(), ProgressBar[progress], t, v, r, event->Title());
-                } else
-                    buffer = cString::sprintf("%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, *event->GetTimeString(), t, v, r, event->Title());
-            } else
-                buffer = cString::sprintf("%.*s\t%s\t%c%c%c\t%s", Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
-            SetText(buffer);
-            result = true;
-        }
-    } else {
-        const char *csn = channel ? channel->ShortName(true) : NULL;
+    if (Force || timerMatch != oldTimerMatch || timerType != oldTimerType) {
+
+        char szChannelpart[20] = "";
         if (channel)
-        {
-            if (withBar && RemoteTimersSetup.showProgressBar)
-                buffer = cString::sprintf("%d\t%.*s\t\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, trREMOTETIMERS(">>> no info! <<<"));
-            else
-                buffer = cString::sprintf("%d\t%.*s\t\t\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, trREMOTETIMERS(">>> no info! <<<"));
-            SetText(buffer);
+	        snprintf(szChannelpart, 20, "%s\t", channel->Name() );
+
+        int progress = 0;
+        char szProgressPart[50] = "";
+        if (event && channel && withBar && RemoteTimersSetup.showProgressBar) {
+            progress = (time(NULL) - event->StartTime()) * MAXPROGRESS / event->Duration();
+            progress = progress < 0 ? 0 : progress >= MAXPROGRESS ? MAXPROGRESS - 1 : progress;
+            snprintf(szProgressPart,50,"%s\t", ProgressBar[progress]);
         }
+        else if(channel && withBar && RemoteTimersSetup.showProgressBar)
+            strcpy(szProgressPart, "\t");
+        
+        char t = event ? TimerMatchChars[timerMatch + 2 * timerType] : ' ';
+        char v = event && event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
+        char r = event && event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
+
+        char szEventDescr[100] = "";
+        snprintf(szEventDescr, 100, "%s%s%s", 
+                event?event->Title():trREMOTETIMERS(">>> no info! <<<"), 
+                SHORTTEXT(event));
+
+        const char *csn = channel ? channel->ShortName(true) : NULL;
+        cString eds = event?event->GetDateString():"";
+        
+        char *buffer = NULL;
+        if (channel && withDate)
+	        asprintf(&buffer, "%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", 
+                            channel->Number(),
+                            Utf8SymChars(csn, CSN_SYMBOLS),
+                            csn,
+                            Utf8SymChars(eds, 6), 
+                            *eds,
+		            event?*(event->GetTimeString()):"", 
+		            t, v, r, 
+		            szEventDescr);
+        else if (channel)
+	        asprintf(&buffer, "%d\t%.*s\t%s\t%s%c%c%c\t%s", 
+                            channel->Number(),
+                            Utf8SymChars(csn, CSN_SYMBOLS),
+                            csn,
+		            event?*(event->GetTimeString()):"",
+                            szProgressPart,
+		            t, v, r, 
+		            szEventDescr);
+        else
+            asprintf(&buffer,"%.*s\t%s\t%c%c%c\t%s", 
+                    Utf8SymChars(eds, 6),
+                    *eds,
+                    event?*(event->GetTimeString()):"", 
+                    t, v, r, 
+                    szEventDescr);
+
+        SetText(buffer, false);
         result = true;
     }
     return result;

@@ -26,6 +26,12 @@
   #define MENU_SEPARATOR_ITEMS "----------------------------------------"
 #endif
 
+#define SHORTTEXT(EVENT) \
+    ((EVENT) && !isempty((EVENT)->ShortText())) ? " ~ ":"", \
+((EVENT) && !isempty((EVENT)->ShortText())) ? (EVENT)->ShortText():""
+
+#define CSN_SYMBOLS 999
+
 #include "svdrp.h"
 //#include "ci.h"
 //#include "device.h"
