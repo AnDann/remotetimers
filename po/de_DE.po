@@ -148,10 +148,6 @@ msgstr "Live-Signal anhalten"
 msgid "Settings for menu \"%s\""
 msgstr "Einstellungen für das Menü \"%s\""
 
-#, c-format
-msgid "Settings for epgsearch \"%s\""
-msgstr "Einstellungen für epgsearch Menü \"%s\""
-
 msgid "Replace mainmenu"
 msgstr "Hauptmenü ersetzen"
 
