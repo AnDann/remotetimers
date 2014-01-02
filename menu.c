@@ -921,8 +921,10 @@ public:
   static void SetSortMode(eScheduleSortMode SortMode) { sortMode = SortMode; }
   static void IncSortMode(void) { sortMode = eScheduleSortMode((sortMode == ssmAllAll) ? ssmAllThis : sortMode + 1); }
   static eScheduleSortMode SortMode(void) { return sortMode; }
+/*
   virtual int Compare(const cListObject &ListObject) const;
-  bool Update(bool Force = false);
+*/
+  virtual bool Update(bool Force = false);
   virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
   };
 
@@ -939,6 +941,7 @@ cMenuScheduleItem::cMenuScheduleItem(const cEvent *Event, cChannel *Channel, boo
   Update(true);
 }
 
+/*
 int cMenuScheduleItem::Compare(const cListObject &ListObject) const
 {
   cMenuScheduleItem *p = (cMenuScheduleItem *)&ListObject;
@@ -949,6 +952,7 @@ int cMenuScheduleItem::Compare(const cListObject &ListObject) const
      r = event->StartTime() - p->event->StartTime();
   return r;
 }
+*/
 
 static const char * const ProgressBar[] =
 {
@@ -966,44 +970,107 @@ static const char * const ProgressBar[] =
 // TRANSLATORS: Schedule timer match characters (lower case for partial match): no match (blank), normal (tT)imer, (pP)rivate timer
 static const char *TimerMatchChars = trREMOTETIMERS(" tTpP");
 
-bool cMenuScheduleItem::Update(bool Force)
-{
-  bool result = false;
-  eTimerMatch oldTimerMatch = timerMatch;
-  //Timers.GetMatch(event, &timerMatch);
-  int oldTimerType = timerType;
-  GetBestMatch(event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &timerMatch, &timerType, NULL);
-  if (Force || timerMatch != oldTimerMatch || timerType != oldTimerType) {
-     cString buffer;
-     char t = TimerMatchChars[timerMatch + 2 * timerType];
-     char v = event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
-     char r = event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
-     const char *csn = channel ? channel->ShortName(true) : NULL;
-     cString eds = event->GetDateString();
-#define CSN_SYMBOLS 999
-     if (channel && withDate)
-        buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
-     else if (channel) {
-	if (withBar && RemoteTimersSetup.showProgressBar) {
-	   int progress = (time(NULL) - event->StartTime()) * MAXPROGRESS / event->Duration();
-	   progress = progress < 0 ? 0 : progress >= MAXPROGRESS ? MAXPROGRESS - 1 : progress;
-           buffer = cString::sprintf("%d\t%.*s\t%s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, *event->GetTimeString(), ProgressBar[progress], t, v, r, event->Title());
-	   }
-	else
-           buffer = cString::sprintf("%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, *event->GetTimeString(), t, v, r, event->Title());
-	}
-     else
-        buffer = cString::sprintf("%.*s\t%s\t%c%c%c\t%s", Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
-     SetText(buffer);
-     result = true;
-     }
-  return result;
+bool cMenuScheduleItem::Update(bool Force) {
+    bool result = false;
+    eTimerMatch oldTimerMatch = timerMatch;
+    int oldTimerType = timerType;
+    if (event)
+        GetBestMatch(event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &timerMatch, &timerType, NULL);
+    if (Force || timerMatch != oldTimerMatch || timerType != oldTimerType) {
+
+        char szChannelpart[20] = "";
+        if (channel)
+	        snprintf(szChannelpart, 20, "%s\t", channel->Name() );
+
+        int progress = 0;
+        char szProgressPart[50] = "";
+        if (event && channel && withBar && RemoteTimersSetup.showProgressBar) {
+            progress = (time(NULL) - event->StartTime()) * MAXPROGRESS / event->Duration();
+            progress = progress < 0 ? 0 : progress >= MAXPROGRESS ? MAXPROGRESS - 1 : progress;
+            snprintf(szProgressPart,50,"%s\t", ProgressBar[progress]);
+        }
+        else if(channel && withBar && RemoteTimersSetup.showProgressBar)
+            strcpy(szProgressPart, "\t");
+        
+        char t = event ? TimerMatchChars[timerMatch + 2 * timerType] : ' ';
+        char v = event && event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
+        char r = event && event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
+
+        char szEventDescr[100] = "";
+        snprintf(szEventDescr, 100, "%s%s%s", 
+                event?event->Title():trREMOTETIMERS(">>> no info! <<<"), 
+                SHORTTEXT(event));
+
+        const char *csn = channel ? channel->ShortName(true) : NULL;
+        cString eds = event?event->GetDateString():"";
+        
+        char *buffer = NULL;
+        if (channel && withDate)
+	        asprintf(&buffer, "%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", 
+                            channel->Number(),
+                            Utf8SymChars(csn, CSN_SYMBOLS),
+                            csn,
+                            Utf8SymChars(eds, 6), 
+                            *eds,
+		            event?*(event->GetTimeString()):"", 
+		            t, v, r, 
+		            szEventDescr);
+        else if (channel)
+	        asprintf(&buffer, "%d\t%.*s\t%s\t%s%c%c%c\t%s", 
+                            channel->Number(),
+                            Utf8SymChars(csn, CSN_SYMBOLS),
+                            csn,
+		            event?*(event->GetTimeString()):"",
+                            szProgressPart,
+		            t, v, r, 
+		            szEventDescr);
+        else
+            asprintf(&buffer,"%.*s\t%s\t%c%c%c\t%s", 
+                    Utf8SymChars(eds, 6),
+                    *eds,
+                    event?*(event->GetTimeString()):"", 
+                    t, v, r, 
+                    szEventDescr);
+
+        SetText(buffer, false);
+        result = true;
+    }
+    return result;
 }
 
 void cMenuScheduleItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
 {
-  if (!RemoteTimersSetup.skinSchedule || !DisplayMenu->SetItemEvent(event, Index, Current, Selectable, channel, withDate, timerMatch))
+  if (!event || !RemoteTimersSetup.skinSchedule || !DisplayMenu->SetItemEvent(event, Index, Current, Selectable, channel, withDate, timerMatch))
      DisplayMenu->SetItem(Text(), Index, Current, Selectable);
+}
+
+// --- cMenuMyScheduleSepItem ------------------------------------------------------
+class cMenuMyScheduleSepItem : public cMenuScheduleItem  {
+  const cChannel *channel;
+public:
+  cMenuMyScheduleSepItem(cChannel *Channel = NULL);
+  virtual bool Update(bool Force = false);
+  virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
+};
+
+cMenuMyScheduleSepItem::cMenuMyScheduleSepItem(cChannel *Channel) : cMenuScheduleItem::cMenuScheduleItem(NULL,Channel,false,false) {
+   channel = Channel;
+   SetSelectable(false);
+   Update(true);
+}
+
+bool cMenuMyScheduleSepItem::Update(bool Force)
+{
+  if (channel && channel->Name())
+    SetText(cString::sprintf("%s\t %s %s", MENU_SEPARATOR_ITEMS, channel->Name(), MENU_SEPARATOR_ITEMS));
+  return true;
+}
+
+void cMenuMyScheduleSepItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
+{
+#if APIVERSNUM >= 10733
+   DisplayMenu->SetItem(Text(), Index, Current, Selectable);
+#endif
 }
 
 // --- cMenuWhatsOn ----------------------------------------------------------
@@ -1045,16 +1112,19 @@ cMenuWhatsOn::cMenuWhatsOn(const cSchedules *Schedules, int WhatsOnId, int Curre
   helpKeys = -1;
   timerState = 0;
   Timers.Modified(timerState);
-  for (cChannel *Channel = Channels.First(); Channel; Channel = Channels.Next(Channel)) {
-      if (!Channel->GroupSep()) {
-         const cSchedule *Schedule = Schedules->GetSchedule(Channel);
-         if (Schedule) {
-            const cEvent *Event = NOW ? Schedule->GetPresentEvent() : NEXT ? Schedule->GetFollowingEvent() : Schedule->GetEventAround(GetTime(EPGTIMESEC));
-            if (Event)
-               Add(new cMenuScheduleItem(Event, Channel, false, NOW), Channel->Number() == CurrentChannelNr);
+        for (cChannel *Channel = Channels.First(); Channel; Channel = Channels.Next(Channel)) {
+            if (!Channel->GroupSep()) {
+                const cSchedule *Schedule = Schedules->GetSchedule(Channel);
+                const cEvent *Event = NULL;
+                if (Schedule)
+                    Event = NOW ? Schedule->GetPresentEvent() : NEXT ? Schedule->GetFollowingEvent() : Schedule->GetEventAround(GetTime(EPGTIMESEC));
+                if (Event || RemoteTimersSetup.showEmptyChannels)
+                    Add(new cMenuScheduleItem(Event, Channel, false, NOW), Channel->Number() == CurrentChannelNr);
+            } else {
+                if (RemoteTimersSetup.showChannelGroups && strlen(Channel->Name()))
+                    Add(new cMenuMyScheduleSepItem(Channel));
             }
-         }
-      }
+        }
   currentChannel = CurrentChannelNr;
   Display();
   SetHelpKeys();
@@ -1122,9 +1192,8 @@ const cEvent *cMenuWhatsOn::ScheduleEvent(void)
 eOSState cMenuWhatsOn::Switch(void)
 {
   cMenuScheduleItem *item = (cMenuScheduleItem *)Get(Current());
-  if (item) {
-     cChannel *channel = Channels.GetByChannelID(item->event->ChannelID(), true);
-     if (channel && cDevice::PrimaryDevice()->SwitchChannel(channel, true))
+  if (item && item->channel) {
+     if (cDevice::PrimaryDevice()->SwitchChannel(item->channel, true))
         return osEnd;
      }
   Skins.Message(mtError, tr("Can't switch channel!"));
@@ -1134,88 +1203,94 @@ eOSState cMenuWhatsOn::Switch(void)
 eOSState cMenuWhatsOn::Record(void)
 {
   cMenuScheduleItem *item = (cMenuScheduleItem *)Get(Current());
-  if (item) {
-     eTimerMatch tm = tmNone;
-     bool isRemote = false;
-     if (item->timerMatch == tmFull) {
-        //cTimer *timer = Timers.GetMatch(item->event, &tm);
-        cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
-        if (timer) {
-           isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
-           }
+    if (item) {
+        eTimerMatch tm = tmNone;
+        bool isRemote = false;
+        if (item->timerMatch == tmFull) {
+            //cTimer *timer = Timers.GetMatch(item->event, &tm);
+            cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
+            if (timer) {
+                isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
+                return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
+            }
         }
 
-     tm = tmNone;
-     isRemote = true;
-     cTimer *timer = new cTimer(item->event);
-     cTimer *t = GetBestMatch(item->event, 0, &tm, NULL, &isRemote);
-     if (!t || tm != tmFull) {
+        tm = tmNone;
         isRemote = true;
-        t = RemoteTimers.GetTimer(timer);
-	}
-     if (!t) {
-        isRemote = false;
-        t = Timers.GetTimer(timer);
+
+        cTimer *timer = NULL;
+        cTimer *t = NULL;
+        if (item->event) {
+            t = GetBestMatch(item->event, 0, &tm, NULL, &isRemote);
+            timer = new cTimer(item->event);
+        } else {
+            cChannel *channel = Channels.GetByNumber(item->channel->Number());
+            timer = new cTimer(false, false, channel);
         }
-     if (t) {
-        delete timer;
-        timer = t;
-	if (tm != tmFull) 
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
-	else {
-           // matching timer, but it was filtered
-	   int user = cMenuTimerItem::ParseUser(t);
-	   cMenuTimerItem::UpdateUser(*t, user | MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
-	   if (isRemote) {
-	      eRemoteTimersState state = RemoteTimers.Modify((cRemoteTimer*)t);
-	      if (state > rtsRefresh)
-	         Skins.Message(state == rtsLocked ? mtWarning : mtError, tr(RemoteTimers.GetErrorMessage(state)));
-	      }
-	   else {
-	      Timers.SetModified();
-	      }
-	   }
-        if (HasSubMenu())
-           CloseSubMenu();
-        if (Update())
-           Display();
-        SetHelpKeys();
+        
+        if (!t || tm != tmFull) {
+            isRemote = true;
+            t = RemoteTimers.GetTimer(timer);
         }
-     else {
-        isRemote = false;
-        cMenuTimerItem::UpdateUser(*timer, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
-        Timers.Add(timer);
-        if (RemoteTimersSetup.addToRemote && !cSvdrp::GetInstance()->Offline()) {
-           isRemote = true;
-           cRemoteTimer *rt = new cRemoteTimer();
-           *(cTimer*) rt = *timer;
-           eRemoteTimersState state = RemoteTimers.New(rt);
-           if (state <= rtsRefresh) {
-              Timers.Del(timer);
-              timer = rt;
-              }
-           else {
-              Skins.Message(state == rtsLocked ? mtWarning : mtError, tr(RemoteTimers.GetErrorMessage(state)));
-              Timers.Del(timer);
-              delete rt;
-              return osContinue;
-              }
-           }
-        Timers.SetModified();
-        isyslog("timer %s added (active)", *timer->ToDescr());
-        if (timer->Matches(0, false, NEWTIMERLIMIT)) {
-           isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
+        if (!t) {
+            isRemote = false;
+            t = Timers.GetTimer(timer);
         }
-        if (HasSubMenu())
-           CloseSubMenu();
-        if (Update())
-           Display();
-        SetHelpKeys();
+        if (t) {
+            delete timer;
+            timer = t;
+            if (tm != tmFull)
+                return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
+            else {
+                // matching timer, but it was filtered
+                int user = cMenuTimerItem::ParseUser(t);
+                cMenuTimerItem::UpdateUser(*t, user | MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+                if (isRemote) {
+                    eRemoteTimersState state = RemoteTimers.Modify((cRemoteTimer*) t);
+                    if (state > rtsRefresh)
+                        Skins.Message(state == rtsLocked ? mtWarning : mtError, tr(RemoteTimers.GetErrorMessage(state)));
+                } else {
+                    Timers.SetModified();
+                }
+            }
+            if (HasSubMenu())
+                CloseSubMenu();
+            if (Update())
+                Display();
+            SetHelpKeys();
+        } else {
+            isRemote = false;
+            cMenuTimerItem::UpdateUser(*timer, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+            Timers.Add(timer);
+            if (RemoteTimersSetup.addToRemote && !cSvdrp::GetInstance()->Offline()) {
+                isRemote = true;
+                cRemoteTimer *rt = new cRemoteTimer();
+                *(cTimer*) rt = *timer;
+                eRemoteTimersState state = RemoteTimers.New(rt);
+                if (state <= rtsRefresh) {
+                    Timers.Del(timer);
+                    timer = rt;
+                } else {
+                    Skins.Message(state == rtsLocked ? mtWarning : mtError, tr(RemoteTimers.GetErrorMessage(state)));
+                    Timers.Del(timer);
+                    delete rt;
+                    return osContinue;
+                }
+            }
+            Timers.SetModified();
+            isyslog("timer %s added (active)", *timer->ToDescr());
+            if (timer->Matches(0, false, NEWTIMERLIMIT)) {
+                isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
+                return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
+            }
+            if (HasSubMenu())
+                CloseSubMenu();
+            if (Update())
+                Display();
+            SetHelpKeys();
         }
-     }
-  return osContinue;
+    }
+    return osContinue;
 }
 
 eOSState cMenuWhatsOn::ProcessKey(eKeys Key)
@@ -1231,16 +1306,16 @@ eOSState cMenuWhatsOn::ProcessKey(eKeys Key)
                      // continue with kGreen
        case kGreen:  {
                        cMenuScheduleItem *mi = (cMenuScheduleItem *)Get(Current());
-                       if (mi) {
-                          scheduleEvent = mi->event;
+                       if (mi) 
                           currentChannel = mi->channel->Number();
-                          }
+                       if (mi->event)
+                          scheduleEvent = mi->event;
                      }
                      break;
        case kBlue:
-       case kOk:     if ((Key == kOk && RemoteTimersSetup.swapOkBlue) || (Key == kBlue && !RemoteTimersSetup.swapOkBlue))
+       case kOk:     if (((Key == kOk && RemoteTimersSetup.swapOkBlue) || (Key == kBlue && !RemoteTimersSetup.swapOkBlue)) && ((cMenuScheduleItem *)Get(Current()))->channel->Number() != cDevice::CurrentChannel())
                         return Switch();
-       case kInfo:   if (Count())
+       case kInfo:   if (Count() && ((cMenuScheduleItem *)Get(Current()))->event)
                         return AddSubMenu(new cMenuEvent(((cMenuScheduleItem *)Get(Current()))->event, true, true));
                      break;
        default:      break;
@@ -1302,7 +1377,12 @@ cMenuSchedule::cMenuSchedule(const char* ServerIp, unsigned short ServerPort)
      schedules = cSchedules::Schedules(schedulesLock);
      PrepareScheduleAllThis(NULL, channel);
      SetHelpKeys();
-     }
+    if (RemoteTimersSetup.startWithNow) {
+        int ChannelNr = channel->Number();
+        whatsOnId = EPGTIME_LENGTH; // now
+        AddSubMenu(new cMenuWhatsOn(schedules, whatsOnId, ChannelNr));
+    }
+  }
 }
 
 cMenuSchedule::~cMenuSchedule()
@@ -1561,21 +1641,19 @@ eOSState cMenuSchedule::ProcessKey(eKeys Key)
        case kGreen:  if (schedules) {
                         if (whatsOnId == -1) {
                            int ChannelNr = 0;
-                           if (Count()) {
-                              cChannel *channel = Channels.GetByChannelID(((cMenuScheduleItem *)Get(Current()))->event->ChannelID(), true);
-                              if (channel)
-                                 ChannelNr = channel->Number();
-                              }
+                           cChannel *channel = Channels.GetByNumber(cDevice::CurrentChannel());
+                           if (channel)
+                              ChannelNr = channel->Number();
                            whatsOnId = EPGTIME_LENGTH; // now
                            return AddSubMenu(new cMenuWhatsOn(schedules, whatsOnId, ChannelNr));
-                           }
+                        }
                         //now = !now;
                         //next = !next;
                         whatsOnId = (whatsOnId + 1) % (EPGTIME_LENGTH + 2);
                         while (whatsOnId < EPGTIME_LENGTH && !RemoteTimersSetup.epgTime[whatsOnId])
                            ++whatsOnId;
                         return AddSubMenu(new cMenuWhatsOn(schedules, whatsOnId, cMenuWhatsOn::CurrentChannel()));
-                        }
+                     }
        case kYellow: if (schedules)
                         return AddSubMenu(new cMenuWhatsOn(schedules, EPGTIME_LENGTH + 1, cMenuWhatsOn::CurrentChannel()));
                      break;
