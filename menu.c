@@ -189,14 +189,23 @@ cString cFreeDiskSpace::lastPath("/");
 bool cFreeDiskSpace::HasChanged(const char *SubDir, bool ForceCheck)
 {
   cString path(ExchangeChars(strdup(SubDir ? SubDir : ""), true), true);
+#if APIVERSNUM > 20101
+  path = cString::sprintf("%s/%s", cVideoDirectory::Name(), *path);
+#else
   path = cString::sprintf("%s/%s", VideoDirectory, *path);
+#endif
   if (ForceCheck || time(NULL) - lastDiskSpaceCheck > DISKSPACECHEK || !EntriesOnSameFileSystem(path, lastPath)) {
      int FreeMB;
      int Percent;
      int MBperMinute = -1;
      lastPath = path;
+#if APIVERSNUM > 20101
+     if (cVideoDirectory::IsOnVideoDirectoryFileSystem(path)) {
+        Percent = cVideoDirectory::VideoDiskSpace(&FreeMB);
+#else
      if (IsOnVideoDirectoryFileSystem(path)) {
         Percent = ::VideoDiskSpace(&FreeMB);
+#endif
         MBperMinute = Recordings.MBperMinute();
      }
      else {
@@ -1836,8 +1845,13 @@ eOSState cMenuEditRecording::Cut()
         int len = strlen(RemoteTimersSetup.serverDir);
         bool remote = len == 0 || (strstr(name, RemoteTimersSetup.serverDir) == name && name[len] == FOLDERDELIMCHAR);
         if (!remote) {
+#if APIVERSNUM > 20101
+           if (RecordingsHandler.GetUsage(*fileName) == ruNone) {
+              if (RecordingsHandler.Add(ruCut, *fileName))
+#else
            if (!cCutter::Active()) {
               if (cCutter::Start(*fileName))
+#endif
                  Skins.Message(mtInfo, tr("Editing process started"));
               else
                  Skins.Message(mtError, tr("Can't start editing process!"));
@@ -1976,7 +1990,11 @@ bool cMenuEditRecording::UpdateName(cRecording *Recording)
          name[len] = '\0';
      }
      cString newName(ExchangeChars(strdup(name), true), true);
+#if APIVERSNUM > 20101
+     newName = cString::sprintf("%s/%s%s", cVideoDirectory::Name(), *newName, p);
+#else
      newName = cString::sprintf("%s/%s%s", VideoDirectory, *newName, p);
+#endif
      bool wasMoving = cMoveRec::IsMoving();
      if (Rename(Recording, newName)) {
         // keep old name when moving recording in background
@@ -2293,7 +2311,11 @@ void cMenuRecordings::Set(bool Refresh)
 
 cString cMenuRecordings::DirectoryName(void)
 {
+#if APIVERSNUM > 20101
+  cString d(cVideoDirectory::Name());
+#else
   cString d(VideoDirectory);
+#endif
   if (base) {
      char *s = ExchangeChars(strdup(base), true);
      d = AddDirectory(d, s);
@@ -2390,9 +2412,17 @@ eOSState cMenuRecordings::Delete(void)
            }
         cRecording *recording = ri->Recording();
         cString FileName = recording->FileName();
+#if APIVERSNUM > 20101
+        if (RecordingsHandler.GetUsage(*FileName) != ruNone) {
+#else
         if (cCutter::Active(ri->Recording()->FileName())) {
+#endif
            if (Interface->Confirm(tr("Recording is being edited - really delete?"))) {
+#if APIVERSNUM > 20101
+              RecordingsHandler.Del(*FileName);
+#else
               cCutter::Stop();
+#endif
               recording = Recordings.GetByName(FileName); // cCutter::Stop() might have deleted it if it was the edited version
               // we continue with the code below even if recording is NULL,
               // in order to have the menu updated etc.

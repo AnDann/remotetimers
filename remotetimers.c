@@ -172,11 +172,23 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
                    if (*RemoteTimersSetup.serverDir) {
                       ir->name = cString::sprintf("%s~%s", RemoteTimersSetup.serverDir, recording.Name());
 
+#if APIVERSNUM > 20101
+                      int len = strlen(cVideoDirectory::Name());
+#else
                       int len = strlen(VideoDirectory);
+#endif
                       ir->fileName = recording.FileName();
+#if APIVERSNUM > 20101
+                      if (strncmp(ir->fileName, cVideoDirectory::Name(), strlen(cVideoDirectory::Name())) == 0 && ir->fileName[len] == '/') {
+#else
                       if (strncmp(ir->fileName, VideoDirectory, strlen(VideoDirectory)) == 0 && ir->fileName[len] == '/') {
+#endif
                          char *serverDir = ExchangeChars(strdup(RemoteTimersSetup.serverDir), true);
+#if APIVERSNUM > 20101
+                         ir->fileName = cString::sprintf("%s/%s%s", cVideoDirectory::Name(), serverDir, ir->fileName + len);
+#else
                          ir->fileName = cString::sprintf("%s/%s%s", VideoDirectory, serverDir, ir->fileName + len);
+#endif
                          free(serverDir);
                       }
                       else {
