@@ -51,9 +51,12 @@ INCLUDES +=
 
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
+# uncomment this to enable support for the graphtft plugin.
+#DEFINES += -DUSE_GRAPHTFT
+
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o svdrp.o conflict.o menu.o menuitems.o setup.o moverec.o watcher.o menu_whatson.o menu_main.o
+OBJS = $(PLUGIN).o svdrp.o conflict.o menu.o menuitems.o setup.o moverec.o watcher.o
 
 ### The main target:
 

@@ -86,10 +86,14 @@ private:
   void Set(eRemoteTimersState State = rtsOk);
   void CheckState(eRemoteTimersState State, bool RefreshMsg = true);
   bool UpdateConflicts(bool Remote);
+
 public:
   cMenuTimers(const char* ServerIp = NULL, unsigned short ServerPort = 0);
   virtual ~cMenuTimers();
   virtual eOSState ProcessKey(eKeys Key);
+#ifdef USE_GRAPHTFT
+  virtual const char* MenuKind() { return "MenuTimers"; }
+#endif
   };
 
 class cMenuSchedule : public cOsdMenu {
@@ -125,6 +129,9 @@ public:
   cMenuEvent(const cEvent *Event, bool CanSwitch = false, bool Buttons = false);
   virtual void Display(void);
   virtual eOSState ProcessKey(eKeys Key);
+#ifdef USE_GRAPHTFT
+  virtual const char* MenuKind() { return "MenuEvent"; }
+#endif
   };
 
 class cMenuRecordingItem;
@@ -158,6 +165,9 @@ public:
   cMenuRecordings(const char *Base = NULL, int Level = 0, bool OpenSubMenus = false);
   ~cMenuRecordings();
   virtual eOSState ProcessKey(eKeys Key);
+#ifdef USE_GRAPHTFT
+  virtual const char* MenuKind() { return "MenuRecordings"; }
+#endif
   };
 
 class cMenuMain : public cOsdMenu {
@@ -169,6 +179,9 @@ public:
   cMenuMain(const char *Title, eOSState State);
   virtual ~cMenuMain();
   virtual eOSState ProcessKey(eKeys Key);
+#ifdef USE_GRAPHTFT
+  virtual const char* MenuKind() { return "MenuMain"; }
+#endif
   };
 
 }; // namespace PluginRemoteTimers

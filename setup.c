@@ -49,7 +49,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	serverIp[0] = 0;
 	serverPort = 0;
 	useChannelId = 1;
-        swapOkBlue = 0;
+	swapOkBlue = 0;
 	showProgressBar = 0;
 
 // Implat from epgsearch
@@ -62,6 +62,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	userFilterSchedule = 0;
 	userFilterTimers = 0;
 	userFilterRecordings = 0;
+	skinSchedule = 0;
 	skinTimers = 0;
 	skinRecordings = 0;
 	defaultUser = 0;
@@ -81,11 +82,14 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	strn0cpy(serverIp, Setup.serverIp, sizeof(serverIp));
 	serverPort = Setup.serverPort;
 	useChannelId = Setup.useChannelId;
+	swapOkBlue = Setup.swapOkBlue;
+	showProgressBar = Setup.showProgressBar;
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		epgTime[i] = Setup.epgTime[i];
 	userFilterSchedule = Setup.userFilterSchedule;
 	userFilterTimers = Setup.userFilterTimers;
 	userFilterRecordings = Setup.userFilterRecordings;
+	skinSchedule = Setup.skinSchedule;
 	skinTimers = Setup.skinTimers;
 	skinRecordings = Setup.skinRecordings;
 	defaultUser = Setup.defaultUser;
@@ -93,8 +97,6 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	remotePause = Setup.remotePause;
 	remoteInstant = Setup.remoteInstant;
 	moveBandwidth = Setup.moveBandwidth;
-        swapOkBlue = Setup.swapOkBlue;
-	showProgressBar = Setup.showProgressBar;
 	copyFilename(serverDir, Setup.serverDir, sizeof(serverDir));
 	watchUpdate = Setup.watchUpdate;
 	// epgsearch implant
@@ -173,12 +175,12 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("ServerIp", setupTmp.serverIp);
 	SetupStore("ServerPort", setupTmp.serverPort);
 	SetupStore("UseChannelId", setupTmp.useChannelId);
-        SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
+	SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
 	SetupStore("ShowProgressBar", setupTmp.showProgressBar);
 
 
 	//	epgsearch    
-	SetupStore("ShowChannelGroups",  setupTmp.showChannelGroups);
+		SetupStore("ShowChannelGroups",  setupTmp.showChannelGroups);
         SetupStore("ShowEmptyChannels",  setupTmp.showEmptyChannels);
         SetupStore("startWithNow",  setupTmp.startWithNow);        
 	//
@@ -222,7 +224,6 @@ cRemoteTimersMenuSetup::~cRemoteTimersMenuSetup() {
 void cRemoteTimersMenuSetup::Set() {
 	int current = Current();
 	Clear();
-
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Server IP"), setupTmp.serverIp, sizeof(setupTmp.serverIp), ".1234567890"));
 	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535, trREMOTETIMERS("from svdrpservice")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Map channels using"), &setupTmp.useChannelId, trREMOTETIMERS("channel number"), trREMOTETIMERS("channel ID")));
@@ -240,13 +241,13 @@ void cRemoteTimersMenuSetup::Set() {
 #ifdef MAINMENUHOOKSVERSNUM
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceSchedule));
 #endif
-        Add(new cMenuEditBoolItem(trREMOTETIMERS("Start with 'NOW'"), &setupTmp.startWithNow,       trVDR("no"),      trVDR("yes")));
+    Add(new cMenuEditBoolItem(trREMOTETIMERS("Start with 'NOW'"), &setupTmp.startWithNow,       trVDR("no"),      trVDR("yes")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinSchedule, tr("Plugin"), tr("Setup.OSD$Skin")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Show progress bar"), &setupTmp.showProgressBar));
 	for (int i = 0; i < EPGTIME_LENGTH; ++i)
 		Add(new cMenuEditTimeItem(cString::sprintf("%s %d", *cString::sprintf(trREMOTETIMERS("What's on at %s?"), "..."), i + 1), &setupTmp.epgTime[i]));
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Key binding of %s/%s"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
-        Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 
  //	Start IMPLANT from epgsearch
         Add(new cMenuEditBoolItem(trREMOTETIMERS("Show group separators"), &setupTmp.showChannelGroups,       trVDR("no"),      trVDR("yes")));

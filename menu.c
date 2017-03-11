@@ -323,7 +323,7 @@ public:
 cMenuEditRemoteTimer::cMenuEditRemoteTimer(cTimer *Timer, bool Remote, bool New, cMenuTimerItem **TimerItem)
 :cMenuEditTimer(Timer, New), timer(Timer), timerItem(TimerItem)
 {
-  SetCols(15, 4, 12);
+  SetCols(15, 60, 12);
   remote = tmpRemote = Remote;
   user = tmpUser = New ? MASK_FROM_SETUP(RemoteTimersSetup.defaultUser) : cMenuTimerItem::ParseUser(timer);
   cOsdItem *item = new cMenuEditBoolItem(trREMOTETIMERS("Location"), &tmpRemote, trREMOTETIMERS("local"), trREMOTETIMERS("remote"));
@@ -877,6 +877,10 @@ void cMenuEvent::Display(void)
 {
   cOsdMenu::Display();
   DisplayMenu()->SetEvent(event);
+#ifdef USE_GRAPHTFT
+  cStatus::MsgOsdSetEvent(event);
+#endif
+
   if (event->Description())
      cStatus::MsgOsdTextItem(event->Description());
 }
@@ -1212,16 +1216,16 @@ eOSState cMenuWhatsOn::Switch(void)
 eOSState cMenuWhatsOn::Record(void)
 {
   cMenuScheduleItem *item = (cMenuScheduleItem *)Get(Current());
-    if (item) {
-        eTimerMatch tm = tmNone;
-        bool isRemote = false;
-        if (item->timerMatch == tmFull) {
-            //cTimer *timer = Timers.GetMatch(item->event, &tm);
-            cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
-            if (timer) {
-                isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
-                return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
-            }
+  if (item) {
+     eTimerMatch tm = tmNone;
+     bool isRemote = false;
+     if (item->timerMatch == tmFull) {
+        //cTimer *timer = Timers.GetMatch(item->event, &tm);
+        cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
+        if (timer) {
+           isRemote ? RemoteConflicts.Update() : LocalConflicts.Update();
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
+           }
         }
 
         tm = tmNone;
